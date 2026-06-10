@@ -1,26 +1,41 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import { config } from '../config/environment.js';
 
-dotenv.config();
+const getTokenFromRequest = (req) => {
+  const headerToken = req.headers.authorization?.split(' ')[1];
+  if (headerToken) return headerToken;
+  return req.cookies?.auth_token;
+};
 
 export const verifyToken = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
+    const token = getTokenFromRequest(req);
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No token provided. Please login.' 
-      });
+      return res.status(401).json({ success: false, message: 'No estás autenticado' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key_change_in_production_2024');
-    req.user = decoded;
+    const decoded = jwt.verify(token, config.jwtSecret);
+    req.user = {
+      id: decoded.id,
+      name: decoded.name,
+      email: decoded.email,
+      role: decoded.role
+    };
     next();
   } catch (error) {
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Invalid or expired token' 
-    });
+    return res.status(401).json({ success: false, message: 'Token inválido o expirado' });
   }
 };
+
+export const requireRole = (...roles) => (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Autenticación requerida' });
+  }
+  if (!roles.includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: 'No tienes permisos para esta acción' });
+  }
+  next();
+};
+
+export const requireAdmin = requireRole('admin');
+export const requireClient = requireRole('user', 'admin');

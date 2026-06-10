@@ -1,10 +1,11 @@
 import { useAuthStore } from "../store/useAuthStore";
+import { useCoffeeStore } from "../store/useCoffeeStore";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Dashboard = () => {
   const { user, loading } = useAuthStore();
+  const favorites = useCoffeeStore((state) => state.favorites);
 
-  // Mock activity data
   const recentActivity = [
     { id: 1, type: 'review', item: 'Colombian Supremo', date: 'Hace 2 horas', icon: '✍️' },
     { id: 2, type: 'favorite', item: 'Ethiopian Yirgacheffe', date: 'Hace 5 horas', icon: '❤️' },
@@ -36,7 +37,7 @@ const Dashboard = () => {
             <span className="text-3xl">☕</span>
             <span className="text-[10px] font-black text-brand-medium uppercase tracking-[0.2em] bg-brand-beige px-3 py-1 rounded-full">Favoritos</span>
           </div>
-          <h3 className="text-4xl font-black text-brand-dark">12</h3>
+          <h3 className="text-4xl font-black text-brand-dark">{favorites?.length || 0}</h3>
           <p className="text-brand-medium mt-2 font-bold">Cafés guardados</p>
         </div>
         
@@ -45,8 +46,8 @@ const Dashboard = () => {
             <span className="text-3xl">📝</span>
             <span className="text-[10px] font-black text-brand-medium uppercase tracking-[0.2em] bg-brand-beige px-3 py-1 rounded-full">Reseñas</span>
           </div>
-          <h3 className="text-4xl font-black text-brand-dark">8</h3>
-          <p className="text-brand-medium mt-2 font-bold">Comentarios realizados</p>
+          <h3 className="text-4xl font-black text-brand-dark">{user?.points ? Math.max(0, Math.floor(user.points / 10)) : 0}</h3>
+          <p className="text-brand-medium mt-2 font-bold">Reseñas estimadas</p>
         </div>
 
         <div className="card-premium p-8 transform hover:-translate-y-1">
@@ -54,7 +55,7 @@ const Dashboard = () => {
             <span className="text-3xl">🌟</span>
             <span className="text-[10px] font-black text-brand-medium uppercase tracking-[0.2em] bg-brand-beige px-3 py-1 rounded-full">Puntos</span>
           </div>
-          <h3 className="text-4xl font-black text-brand-dark">450</h3>
+          <h3 className="text-4xl font-black text-brand-dark">{user?.points || 0}</h3>
           <p className="text-brand-medium mt-2 font-bold">Coffee Points</p>
         </div>
       </div>

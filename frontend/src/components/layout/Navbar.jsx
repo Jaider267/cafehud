@@ -46,8 +46,6 @@ const Navbar = () => {
       {/* Navigation */}
       <div className="flex items-center gap-6 sm:gap-12">
         <div className="flex items-center gap-6 sm:gap-10 text-[10px] font-black uppercase tracking-[0.2em]">
-          <Link to="/" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Inicio</Link>
-
           {!isAuthenticated ? (
             <>
               <Link to="/login" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Login</Link>
@@ -61,15 +59,16 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/dashboard" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Dashboard</Link>
-              <div className="flex items-center gap-4 ml-4 border-l border-white/10 pl-8">
-                <span className="hidden sm:inline text-brand-beige dark:text-white">Hola, {user?.name || 'Barista'}</span>
-                <button 
-                  onClick={handleLogout} 
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-[9px] transition-colors font-black dark:text-white"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Admin</Link>
+              )}
+              <span className="hidden sm:inline text-brand-beige dark:text-white">Hola, {user?.name || 'Barista'}</span>
+              <button 
+                onClick={handleLogout} 
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-[9px] transition-colors font-black dark:text-white"
+              >
+                Cerrar sesión
+              </button>
             </>
           )}
 

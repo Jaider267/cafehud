@@ -6,28 +6,39 @@ const getStoredUser = () => {
     const stored = localStorage.getItem('cafe_user');
     return stored ? JSON.parse(stored) : null;
   } catch (e) {
-    console.error("Error al parsear cafe_user:", e);
+    console.error('Error al parsear cafe_user:', e);
     return null;
   }
 };
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: getStoredUser(),
   isAuthenticated: !!getStoredUser(),
+  initializing: true,
   loading: false,
   error: null,
+
+  initialize: async () => {
+    set({ initializing: true, error: null });
+    try {
+      const response = await authApi.me();
+      const user = response.data?.data?.user || response.data?.user || response.user || response;
+      localStorage.setItem('cafe_user', JSON.stringify(user));
+      set({ user, isAuthenticated: true, initializing: false, loading: false });
+    } catch (err) {
+      localStorage.removeItem('cafe_user');
+      set({ user: null, isAuthenticated: false, initializing: false, loading: false });
+    }
+  },
 
   login: async (credentials) => {
     set({ loading: true, error: null });
     try {
       const response = await authApi.login(credentials);
-      const userData = response.data?.data?.user || response.data?.user || response.user || response;
-      const token = response.data?.data?.token || response.data?.token || response.token;
-      if (token) userData.token = token;
-      
-      localStorage.setItem('cafe_user', JSON.stringify(userData));
-      set({ user: userData, isAuthenticated: true, loading: false });
-      return userData;
+      const user = response.data?.data?.user || response.data?.user || response.user || response;
+      localStorage.setItem('cafe_user', JSON.stringify(user));
+      set({ user, isAuthenticated: true, loading: false, error: null });
+      return user;
     } catch (err) {
       const message = err.response?.data?.message || 'Credenciales inválidas';
       set({ error: message, loading: false });
@@ -35,21 +46,13 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('cafe_user');
-    set({ user: null, isAuthenticated: false, error: null });
-  },
-
   register: async (userData) => {
     set({ loading: true, error: null });
     try {
       const response = await authApi.register(userData);
       const user = response.data?.data?.user || response.data?.user || response.user || response;
-      const token = response.data?.data?.token || response.data?.token || response.token;
-      if (token) user.token = token;
-      
       localStorage.setItem('cafe_user', JSON.stringify(user));
-      set({ user: user, isAuthenticated: true, loading: false });
+      set({ user, isAuthenticated: true, loading: false, error: null });
       return user;
     } catch (err) {
       const message = err.response?.data?.message || 'Error al registrarse';
@@ -57,4 +60,20 @@ export const useAuthStore = create((set) => ({
       throw new Error(message);
     }
   },
+
+  logout: async () => {
+    set({ loading: true, error: null });
+    try {
+      await authApi.logout();
+    } catch (err) {
+      console.warn('Error cerrando sesión:', err);
+    }
+    localStorage.removeItem('cafe_user');
+    set({ user: null, isAuthenticated: false, loading: false, error: null });
+  },
+
+  isAdmin: () => {
+    const currentUser = get().user;
+    return currentUser?.role === 'admin';
+  }
 }));

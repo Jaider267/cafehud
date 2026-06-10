@@ -14,13 +14,11 @@ const ReviewModal = ({ cafe, isOpen, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
+    if (!user) return;
 
-    addReview(cafe.id, {
-      id: Date.now(),
-      userName: user?.name || "Barista Anónimo",
+    addReview(cafe._id || cafe.id, {
       rating,
-      comment,
-      date: new Date().toLocaleDateString()
+      comment
     });
     
     setComment("");

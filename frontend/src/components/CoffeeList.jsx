@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFilterStore } from "../store/useFilterStore";
 import { useCoffeeStore } from "../store/useCoffeeStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -8,6 +9,7 @@ import LoadingSpinner from "./ui/LoadingSpinner";
 import ErrorState from "./ui/ErrorState";
 
 const CoffeeCard = ({ cafe }) => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { voteCoffee, addToCart, toggleFavorite, favorites } = useCoffeeStore();
   const [voted, setVoted] = useState(false);
@@ -15,12 +17,16 @@ const CoffeeCard = ({ cafe }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
 
-  const isFavorite = favorites.includes(cafe.id);
+  const cafeId = cafe._id || cafe.id;
+  const isFavorite = favorites.includes(cafeId);
 
   const handleVote = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    voteCoffee(cafe.id);
+    if (!user) {
+      return navigate('/login');
+    }
+    voteCoffee(cafeId);
     setVoted(true);
     setTimeout(() => setVoted(false), 2000);
   };
@@ -28,16 +34,21 @@ const CoffeeCard = ({ cafe }) => {
   const handleToggleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (user?.email) {
-      toggleFavorite(cafe.id, user.email);
+    if (!user) {
+      return navigate('/login');
     }
+    toggleFavorite(cafeId);
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      return navigate('/login');
+    }
     addToCart(cafe);
     setAdded(true);
     setTimeout(() => setAdded(false), 1000);
   };
+
 
   return (
     <div className="card-premium group flex flex-col h-full hover:shadow-2xl relative">
@@ -55,11 +66,7 @@ const CoffeeCard = ({ cafe }) => {
         
         {/* Botón Favorito (Corazón) */}
         <button 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleFavorite(cafe.id);
-          }}
+          onClick={handleToggleFavorite}
           className={`absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md transition-all duration-500 z-20 shadow-xl border ${
             isFavorite 
             ? 'bg-red-500 border-red-400 scale-110' 
@@ -107,7 +114,12 @@ const CoffeeCard = ({ cafe }) => {
             {showReviews ? 'Ocultar reseñas' : `Ver reseñas (${cafe.reviews?.length || 0})`}
           </button>
           <button 
-            onClick={() => setIsReviewModalOpen(true)}
+            onClick={() => {
+              if (!user) {
+                return navigate('/login');
+              }
+              setIsReviewModalOpen(true);
+            }}
             className="text-[10px] font-black text-brand-medium dark:text-white underline uppercase tracking-widest"
           >
             Escribir reseña
@@ -197,11 +209,18 @@ const CoffeeCard = ({ cafe }) => {
 
 const CoffeeList = () => {
   const { filters } = useFilterStore();
-  const { cafes, fetchCafes, favorites, loading, error } = useCoffeeStore();
+  const { cafes, fetchCafes, favorites, fetchFavorites, loading, error } = useCoffeeStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchCafes();
   }, [fetchCafes]);
+
+  useEffect(() => {
+    if (user) {
+      fetchFavorites();
+    }
+  }, [user, fetchFavorites]);
 
   const filteredAndSortedCafes = useMemo(() => {
     let result = [...cafes];
@@ -211,7 +230,7 @@ const CoffeeList = () => {
     }
 
     if (filters.onlyFavorites) {
-      result = result.filter((cafe) => favorites.includes(cafe.id));
+      result = result.filter((cafe) => favorites.includes(cafe._id || cafe.id));
     }
 
     switch (filters.sortBy) {

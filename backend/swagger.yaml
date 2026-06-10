@@ -1,0 +1,167 @@
+openapi: 3.0.1
+info:
+  title: CaféHub Premium API
+  version: '1.0.0'
+  description: API para gestionar cafés, autenticación, favoritos y administración.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Registrar un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Usuario registrado correctamente
+  /api/v1/auth/login:
+    post:
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+  /api/v1/auth/me:
+    get:
+      summary: Obtener sesión activa
+      responses:
+        '200':
+          description: Datos del usuario autenticado
+  /api/v1/cafes:
+    get:
+      summary: Listar cafés disponibles
+      responses:
+        '200':
+          description: Catálogo de cafés
+    post:
+      summary: Crear un nuevo café (admin)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                brand:
+                  type: string
+                description:
+                  type: string
+                origin:
+                  type: string
+                roast:
+                  type: string
+                price:
+                  type: number
+                imageUrl:
+                  type: string
+      responses:
+        '201':
+          description: Café creado
+  /api/v1/cafes/{id}:
+    put:
+      summary: Actualizar café (admin)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Café actualizado
+    delete:
+      summary: Eliminar café (admin)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Café eliminado
+  /api/v1/cafes/{id}/vote:
+    post:
+      summary: Votar un café
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Voto registrado
+  /api/v1/cafes/{id}/reviews:
+    post:
+      summary: Agregar reseña al café autenticado
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Reseña creada
+  /api/v1/favorites:
+    get:
+      summary: Obtener favoritos del usuario autenticado
+      responses:
+        '200':
+          description: Favoritos retornados
+  /api/v1/favorites/{id}/toggle:
+    post:
+      summary: Alternar favorito de café autenticado
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Favorito actualizado
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_token

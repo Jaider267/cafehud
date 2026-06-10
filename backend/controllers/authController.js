@@ -2,110 +2,128 @@ import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { validationResult } from 'express-validator';
 import User from '../models/User.js';
-import { asyncHandler } from '../middleware/errorHandler.js';import dotenv from 'dotenv';
+import { asyncHandler } from '../middleware/errorHandler.js';
+import { config } from '../config/environment.js';
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key_change_in_production';
+const createToken = (user) => jwt.sign(
+  { id: user._id, name: user.name, email: user.email, role: user.role },
+  config.jwtSecret,
+  { expiresIn: config.jwtExpiresIn }
+);
 
-// POST /api/v1/auth/register - Registrar nuevo usuario
+const sendTokenCookie = (res, token) => {
+  const secure = config.nodeEnv === 'production';
+  res.cookie('auth_token', token, {
+    httpOnly: true,
+    secure,
+    sameSite: secure ? 'none' : 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  });
+};
+
+const sanitizeUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  points: user.points
+});
+
 export const register = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: 'Validation error',
+      message: 'Error de validación',
       errors: errors.array()
     });
   }
 
   const { email, name, password } = req.body;
+  const existingUser = await User.findOne({ email });
 
-  // Verificar si el usuario ya existe
-  let user = await User.findOne({ email });
-  if (user) {
+  if (existingUser) {
     return res.status(400).json({
       success: false,
-      message: 'User already exists'
+      message: 'El usuario ya existe'
     });
   }
 
-  // Hash de contraseña
   const hashedPassword = await bcryptjs.hash(password, 10);
-
-  // Crear nuevo usuario
-  user = new User({
+  const user = await User.create({
     email,
     name,
-    password: hashedPassword
+    password: hashedPassword,
+    role: 'user',
+    points: 0
   });
 
-  await user.save();
-
-  // Generar token JWT
-  const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, {
-    expiresIn: '7d'
-  });
+  const token = createToken(user);
+  sendTokenCookie(res, token);
 
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'Registro exitoso',
     data: {
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name
-      },
-      token
+      user: sanitizeUser(user)
     }
   });
 });
 
-// POST /api/v1/auth/login - Login
 export const login = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: 'Validation error',
+      message: 'Error de validación',
       errors: errors.array()
     });
   }
 
   const { email, password } = req.body;
-
-  // Buscar usuario
   const user = await User.findOne({ email });
+
   if (!user) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid credentials'
+      message: 'Credenciales inválidas'
     });
   }
 
-  // Comparar contraseña
   const isPasswordValid = await bcryptjs.compare(password, user.password);
   if (!isPasswordValid) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid credentials'
+      message: 'Credenciales inválidas'
     });
   }
 
-  // Generar token JWT
-  const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, {
-    expiresIn: '7d'
-  });
+  const token = createToken(user);
+  sendTokenCookie(res, token);
 
   res.status(200).json({
     success: true,
-    message: 'Login successful',
+    message: 'Inicio de sesión exitoso',
     data: {
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name
-      },
-      token
+      user: sanitizeUser(user)
     }
   });
+});
+
+export const me = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+  }
+  res.status(200).json({ success: true, data: { user: sanitizeUser(user) } });
+});
+
+export const logout = asyncHandler(async (req, res) => {
+  const secure = config.nodeEnv === 'production';
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure,
+    sameSite: secure ? 'none' : 'lax'
+  });
+  res.status(200).json({ success: true, message: 'Sesión cerrada correctamente' });
 });

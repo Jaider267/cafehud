@@ -20,20 +20,18 @@ export const useCoffeeStore = create((set, get) => ({
     }
   },
 
-  fetchFavorites: async (email) => {
-    if (!email) return;
+  fetchFavorites: async () => {
     try {
-      const favorites = await favoriteApi.getFavorites(email);
+      const favorites = await favoriteApi.getFavorites();
       set({ favorites });
     } catch (err) {
       console.error("Error al cargar favoritos", err);
     }
   },
 
-  toggleFavorite: async (id, email) => {
-    if (!email) return;
+  toggleFavorite: async (id) => {
     try {
-      const updatedFavorites = await favoriteApi.toggle(email, id);
+      const updatedFavorites = await favoriteApi.toggle(id);
       set({ favorites: updatedFavorites });
     } catch (err) {
       console.error("Error al actualizar favorito", err);
@@ -44,7 +42,7 @@ export const useCoffeeStore = create((set, get) => ({
     try {
       const updatedCafe = await cafeApi.vote(id);
       set((state) => ({
-        cafes: state.cafes.map(c => c.id === id ? updatedCafe : c)
+        cafes: state.cafes.map(c => String(c._id) === String(id) || c.id === id ? updatedCafe : c)
       }));
     } catch (err) {
       console.error("Error al votar", err);
@@ -55,7 +53,7 @@ export const useCoffeeStore = create((set, get) => ({
     try {
       const updatedCafe = await cafeApi.addReview(id, reviewData);
       set((state) => ({
-        cafes: state.cafes.map(c => c.id === id ? updatedCafe : c)
+        cafes: state.cafes.map(c => String(c._id) === String(id) || c.id === id ? updatedCafe : c)
       }));
     } catch (err) {
       console.error("Error al añadir reseña", err);
