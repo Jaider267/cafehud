@@ -115,30 +115,43 @@ export const seedDatabase = async () => {
     await waitForMongoReady();
 
     const cafesCount = await Cafe.countDocuments();
-    const usersCount = await User.countDocuments();
 
     if (cafesCount === 0) {
       await Cafe.insertMany(initialCafes);
       console.log('Datos iniciales de cafés poblados');
     }
 
-    if (usersCount === 0) {
+    const adminEmail = 'admin@cafehub.com';
+    const clientEmail = 'cliente@cafehub.com';
+
+    const [adminUser, clientUser] = await Promise.all([
+      User.findOne({ email: adminEmail }),
+      User.findOne({ email: clientEmail })
+    ]);
+
+    if (!adminUser) {
       const hashedPassword = await bcryptjs.hash('Admin123!', 10);
       await User.create({
-        email: 'admin@cafehub.com',
+        email: adminEmail,
         name: 'Administrador',
         password: hashedPassword,
         role: 'admin',
         points: 0
       });
-      const hashedUserPassword = await bcryptjs.hash('Cliente123!', 10);
+    }
+
+    if (!clientUser) {
+      const hashedPassword = await bcryptjs.hash('Cliente123!', 10);
       await User.create({
-        email: 'cliente@cafehub.com',
+        email: clientEmail,
         name: 'Cliente Premium',
-        password: hashedUserPassword,
-        role: 'user',
+        password: hashedPassword,
+        role: 'client',
         points: 50
       });
+    }
+
+    if (!adminUser || !clientUser) {
       console.log('Usuarios de prueba creados: admin@cafehub.com / cliente@cafehub.com');
     }
   } catch (error) {

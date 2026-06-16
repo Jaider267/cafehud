@@ -14,7 +14,7 @@ export const updateUserRole = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { role } = req.body;
 
-  if (!['user', 'admin'].includes(role)) {
+  if (!['client', 'user', 'admin'].includes(role)) {
     return res.status(400).json({ success: false, message: 'Rol invalido' });
   }
 

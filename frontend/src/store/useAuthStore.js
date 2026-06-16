@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { authApi } from '../api/api';
 
+const canUseStorage = () => typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+
 const getStoredUser = () => {
+  if (!canUseStorage()) {
+    return null;
+  }
+
   try {
     const stored = localStorage.getItem('cafe_user');
     return stored ? JSON.parse(stored) : null;
@@ -12,6 +18,10 @@ const getStoredUser = () => {
 };
 
 const persistUser = (user) => {
+  if (!canUseStorage()) {
+    return;
+  }
+
   if (user) {
     localStorage.setItem('cafe_user', JSON.stringify(user));
   } else {
@@ -20,10 +30,11 @@ const persistUser = (user) => {
 };
 
 const extractUser = (response) => response?.user ?? response;
+const initialUser = getStoredUser();
 
 export const useAuthStore = create((set, get) => ({
-  user: getStoredUser(),
-  isAuthenticated: !!getStoredUser(),
+  user: initialUser,
+  isAuthenticated: !!initialUser,
   initializing: true,
   loading: false,
   error: null,
@@ -96,5 +107,5 @@ export const useAuthStore = create((set, get) => ({
   },
 
   isAdmin: () => get().user?.role === 'admin',
-  isClient: () => ['user', 'admin'].includes(get().user?.role)
+  isClient: () => ['client', 'user'].includes(get().user?.role)
 }));

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import Navbar from "./Navbar";
 
 const MainLayout = () => {
@@ -12,7 +12,7 @@ const MainLayout = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="w-16 h-1 bg-brand-medium mx-auto mb-8 rounded-full opacity-20"></div>
           <p className="text-brand-medium font-black text-[10px] uppercase tracking-[0.5em] mb-4">CaféHub Premium Experience</p>
-          <p className="text-brand-light text-xs font-bold">© 2026 Todos los derechos reservados. El arte de tostar café.</p>
+          <p className="text-brand-medium text-xs font-bold opacity-80">© 2026 Todos los derechos reservados. El arte de tostar café.</p>
         </div>
       </footer>
     </div>

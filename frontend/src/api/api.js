@@ -1,11 +1,48 @@
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+let isHandlingUnauthorized = false;
 
 const api = axios.create({
   baseURL: `${API_URL}/api/v1`,
   withCredentials: true,
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const url = error.config?.url || "";
+    const isAuthEndpoint = url.includes("/auth/");
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      if (isHandlingUnauthorized) {
+        return Promise.reject(error);
+      }
+
+      isHandlingUnauthorized = true;
+
+      try {
+        await api.post("/auth/logout");
+      } catch (logoutError) {
+        console.error("Error en logout silencioso:", logoutError);
+      } finally {
+        localStorage.clear();
+        sessionStorage.clear();
+
+        const { useAuthStore } = await import("../store/useAuthStore");
+        useAuthStore.getState().setUser(null);
+
+        if (typeof window !== "undefined" && !["/login", "/register"].includes(window.location.pathname)) {
+          window.location.replace("/login");
+          return Promise.reject(error);
+        }
+
+        isHandlingUnauthorized = false;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const unwrap = (response) => response.data?.data ?? response.data;
 

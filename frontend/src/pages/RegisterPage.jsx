@@ -2,10 +2,8 @@ import RegisterForm from "../components/forms/RegisterForm";
 
 const RegisterPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-beige-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <RegisterForm />
-      </div>
+    <div className="flex-1 flex items-center justify-center w-full">
+      <RegisterForm />
     </div>
   );
 };

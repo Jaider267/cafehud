@@ -1,8 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Link, useNavigate } from "react-router";
+import { Coffee } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useNavigate, Link } from "react-router-dom";
 
 const schema = z.object({
   email: z.string().email("Correo invalido"),
@@ -29,14 +30,8 @@ const LoginForm = () => {
   return (
     <div className="card-premium w-full max-w-[460px] p-10 sm:p-14">
       <div className="flex flex-col items-center mb-12">
-        <div className="w-24 h-24 bg-brand-dark text-white rounded-full flex items-center justify-center shadow-2xl mb-8 border-8 border-brand-bg">
-          <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-            <line x1="6" y1="1" x2="6" y2="4" />
-            <line x1="10" y1="1" x2="10" y2="4" />
-            <line x1="14" y1="1" x2="14" y2="4" />
-          </svg>
+        <div className="w-24 h-24 bg-brand-dark dark:bg-[#F1E7E2] rounded-full flex items-center justify-center shadow-2xl mb-8 border-8 border-brand-bg">
+          <Coffee className="w-12 h-12 text-white dark:text-[#6F4A2D]" strokeWidth={2.75} />
         </div>
         <h2 className="text-4xl font-black text-brand-dark mb-2 tracking-tighter">
           Iniciar sesion
