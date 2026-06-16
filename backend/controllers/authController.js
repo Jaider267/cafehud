@@ -55,7 +55,7 @@ export const register = asyncHandler(async (req, res) => {
     email,
     name,
     password: hashedPassword,
-    role: 'user',
+    role: 'client',
     points: 0
   });
 

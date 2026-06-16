@@ -43,6 +43,9 @@
   
   --text-main: #3E2723;
   --text-sub: #6D4C41;
+
+  --icon-strong: var(--brand-dark);
+  --icon-on-light: var(--brand-dark);
   
   /* Colores de Botón en Modo Claro */
   --btn-bg: #6D4C41;
@@ -52,16 +55,19 @@
 }
 
 :root.dark {
-  /* MODO OSCURO - CONTRASTE MÁXIMO */
-  --brand-bg: #000000;
+  /* MODO OSCURO */
+  --brand-bg: #24201E;
   --brand-dark: #FFFFFF;
-  --brand-medium: #E2D9D5;
-  --brand-light: #333333;
-  --brand-card: #111111;
-  --nav-bg: #050505;
+  --brand-medium: #E6D8D2;
+  --brand-light: #4B423E;
+  --brand-card: #2C2725;
+  --nav-bg: #26211F;
   
   --text-main: #FFFFFF;
-  --text-sub: #E2D9D5;
+  --text-sub: #D2C0B8;
+
+  --icon-strong: var(--brand-medium);
+  --icon-on-light: var(--brand-bg);
 
   /* Colores de Botón en Modo Oscuro (Invertidos para visibilidad) */
   --btn-bg: #FFFFFF;
@@ -97,6 +103,17 @@ body {
   /* Forzar visibilidad de textos en dark mode */
   .dark p, .dark span, .dark label {
     color: var(--text-sub);
+  }
+
+  .dark .lucide {
+    color: var(--icon-strong);
+  }
+
+  .dark .bg-white .lucide,
+  .dark .bg-brand-dark .lucide,
+  .dark .bg-brand-medium .lucide,
+  .dark .btn-premium .lucide {
+    color: var(--icon-on-light);
   }
 }
 

@@ -301,10 +301,11 @@ const AdminDashboard = () => {
                     <select
                       value={user.role}
                       onChange={(event) => handleRoleChange(user._id, event.target.value)}
-                      className="rounded-lg border border-brand-light bg-white px-3 py-2 text-sm font-bold text-brand-dark"
+                      className="rounded-lg border border-brand-light bg-brand-beige px-3 py-2 text-sm font-bold text-brand-dark dark:text-white"
                     >
+                      <option value="client">Cliente</option>
                       <option value="user">Cliente</option>
-                      <option value="admin">Admin</option>
+                      <option value="admin">Administrador</option>
                     </select>
                   </td>
                   <td className="table-cell-admin">{user.points || 0}</td>

@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
+import { Check, Plus } from "lucide-react";
 import { useFilterStore } from "../store/useFilterStore";
 import { useCoffeeStore } from "../store/useCoffeeStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -21,10 +22,16 @@ const CoffeeCard = ({ cafe }) => {
 
   const cafeId = getCafeId(cafe);
   const isFavorite = favorites.includes(cafeId);
+  const isUnavailable = !cafe.available;
+  const isClient = !!user && ["client", "user"].includes(user.role);
+  const isBlockedByRole = !!user && !isClient;
 
   const requireSession = () => {
     if (!user) {
       navigate("/login");
+      return false;
+    }
+    if (!isClient) {
       return false;
     }
     return true;
@@ -49,6 +56,7 @@ const CoffeeCard = ({ cafe }) => {
   };
 
   const handleAddToCart = () => {
+    if (isUnavailable) return;
     if (!requireSession()) return;
 
     addToCart(cafe);
@@ -73,12 +81,13 @@ const CoffeeCard = ({ cafe }) => {
 
         <button
           onClick={handleToggleFavorite}
+          disabled={isBlockedByRole}
           className={`absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md transition-all duration-500 z-20 shadow-xl border ${
             isFavorite
               ? "bg-red-500 border-red-400 scale-110"
               : "bg-black/20 border-white/20 hover:bg-black/40 hover:scale-110"
           }`}
-          title={isFavorite ? "Quitar de favoritos" : "Anadir a favoritos"}
+          title={isBlockedByRole ? "Disponible solo para clientes" : isFavorite ? "Quitar de favoritos" : "Anadir a favoritos"}
         >
           <svg
             className={`w-6 h-6 transition-colors duration-500 ${isFavorite ? "text-white fill-current" : "text-white"}`}
@@ -119,7 +128,9 @@ const CoffeeCard = ({ cafe }) => {
               if (!requireSession()) return;
               setIsReviewModalOpen(true);
             }}
+            disabled={isBlockedByRole}
             className="text-[10px] font-black text-brand-medium dark:text-white underline uppercase tracking-widest"
+            title={isBlockedByRole ? "Disponible solo para clientes" : "Escribir resena"}
           >
             Escribir resena
           </button>
@@ -145,11 +156,11 @@ const CoffeeCard = ({ cafe }) => {
 
         <div className="grid grid-cols-2 gap-4 mb-10">
           <div className="card-info-box">
-            <span className="text-[9px] font-black text-brand-light dark:text-gray-400 uppercase tracking-widest mb-1">Origen</span>
+            <span className="text-[9px] font-black text-brand-medium dark:text-gray-400 uppercase tracking-widest mb-1">Origen</span>
             <span className="text-xs font-bold text-brand-dark dark:text-white">{cafe.origin}</span>
           </div>
           <div className="card-info-box">
-            <span className="text-[9px] font-black text-brand-light dark:text-gray-400 uppercase tracking-widest mb-1">Tueste</span>
+            <span className="text-[9px] font-black text-brand-medium dark:text-gray-400 uppercase tracking-widest mb-1">Tueste</span>
             <span className="text-xs font-bold text-brand-dark dark:text-white">{cafe.roast}</span>
           </div>
         </div>
@@ -158,7 +169,7 @@ const CoffeeCard = ({ cafe }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleVote}
-              disabled={voted}
+            disabled={voted || isBlockedByRole}
               className={`flex items-center px-3 py-1.5 rounded-lg border shadow-sm transition-all ${
                 voted
                   ? "bg-green-500 border-green-600 scale-95"
@@ -171,28 +182,33 @@ const CoffeeCard = ({ cafe }) => {
                 {Number(cafe.rating || 0).toFixed(1)}
               </span>
             </button>
-            <span className="text-[10px] font-black text-brand-light dark:text-white uppercase tracking-widest">
+            <span className="text-[10px] font-black text-brand-medium dark:text-gray-200 uppercase tracking-widest">
               ({cafe.votes || 0} votos)
             </span>
           </div>
 
           <button
             onClick={handleAddToCart}
-            className={`w-12 h-12 !p-0 !rounded-xl shadow-2xl transition-all duration-300 flex items-center justify-center border border-white/10 ${
+            disabled={isUnavailable || isBlockedByRole}
+            className={`w-12 h-12 !p-0 !rounded-xl shadow-2xl transition-colors duration-200 flex items-center justify-center border border-white/10 ${
               added
                 ? "bg-green-500 scale-110 rotate-12"
-                : "bg-brand-medium dark:bg-white hover:bg-brand-dark dark:hover:bg-gray-200 hover:scale-110 active:scale-95"
+                : isUnavailable || isBlockedByRole
+                  ? "cursor-not-allowed bg-gray-400 dark:bg-gray-700 opacity-60"
+                  : "bg-brand-medium dark:bg-white hover:bg-brand-dark dark:hover:bg-gray-200 active:opacity-90"
             }`}
-            title="Anadir al carrito"
+            title={
+              isBlockedByRole
+                ? "Disponible solo para clientes"
+                : isUnavailable
+                  ? "Producto no disponible"
+                  : "Anadir al carrito"
+            }
           >
             {added ? (
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
-              </svg>
+              <Check className="w-7 h-7 text-white" strokeWidth={3.25} />
             ) : (
-              <svg className="w-6 h-6 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" />
-              </svg>
+              <Plus className="w-7 h-7 text-white dark:text-black" strokeWidth={3.25} />
             )}
           </button>
         </div>
@@ -211,16 +227,17 @@ const CoffeeList = () => {
   const { filters } = useFilterStore();
   const { cafes, fetchCafes, favorites, fetchFavorites, loading, error } = useCoffeeStore();
   const { user } = useAuthStore();
+  const isClient = !!user && ["client", "user"].includes(user.role);
 
   useEffect(() => {
     fetchCafes();
   }, [fetchCafes]);
 
   useEffect(() => {
-    if (user) {
+    if (isClient) {
       fetchFavorites();
     }
-  }, [user, fetchFavorites]);
+  }, [isClient, fetchFavorites]);
 
   const filteredAndSortedCafes = useMemo(() => {
     let result = [...cafes];

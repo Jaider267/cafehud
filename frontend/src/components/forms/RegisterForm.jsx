@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useNavigate, Link } from "react-router-dom";
 
 const RegisterForm = () => {
   const { register: registerUser, loading, error: authError } = useAuthStore();

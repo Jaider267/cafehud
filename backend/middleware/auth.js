@@ -38,4 +38,4 @@ export const requireRole = (...roles) => (req, res, next) => {
 };
 
 export const requireAdmin = requireRole('admin');
-export const requireClient = requireRole('user', 'admin');
+export const requireClient = requireRole('client', 'user', 'admin');

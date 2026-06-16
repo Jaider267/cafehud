@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowRight, X } from "lucide-react";
 import { useCoffeeStore } from "../../store/useCoffeeStore";
 import { useAuthStore } from "../../store/useAuthStore";
 
@@ -35,7 +36,7 @@ const ReviewModal = ({ cafe, isOpen, onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
 
-      <div className="relative w-full max-w-lg bg-white dark:bg-black rounded-[3rem] shadow-2xl overflow-hidden border border-brand-light/20 animate-scale-in">
+      <div className="relative w-full max-w-lg bg-brand-beige rounded-[3rem] shadow-2xl overflow-hidden border border-brand-light/20 animate-scale-in">
         <div className="p-10">
           <div className="flex justify-between items-start mb-8">
             <div>
@@ -44,10 +45,8 @@ const ReviewModal = ({ cafe, isOpen, onClose }) => {
                 Compartiendo sobre {cafe.name}
               </p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-brand-light/10 rounded-full dark:text-white">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+            <button type="button" onClick={onClose} className="p-2 hover:bg-brand-light/10 rounded-full dark:text-white" aria-label="Cerrar">
+              <X className="w-6 h-6" />
             </button>
           </div>
 
@@ -96,9 +95,7 @@ const ReviewModal = ({ cafe, isOpen, onClose }) => {
 
             <button type="submit" disabled={saving} className="w-full btn-premium py-6 group">
               <span className="font-black uppercase tracking-[0.2em]">{saving ? "Publicando..." : "Publicar resena"}</span>
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
         </div>

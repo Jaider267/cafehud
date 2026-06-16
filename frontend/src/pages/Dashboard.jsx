@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { reviewApi } from "../api/api";
 import { useAuthStore } from "../store/useAuthStore";
 import { useCoffeeStore } from "../store/useCoffeeStore";
+import { useThemeStore } from "../store/useThemeStore";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Dashboard = () => {
   const { user, loading, refreshMe } = useAuthStore();
+  const { isDark } = useThemeStore();
   const {
     cafes,
     cart,
@@ -46,8 +48,16 @@ const Dashboard = () => {
     <div className="max-w-6xl mx-auto w-full pt-8 px-4 pb-20">
       <header className="mb-10">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-brand-dark text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg">
-            {user?.name?.charAt(0).toUpperCase()}
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg border border-brand-light/30 dark:border-white/15"
+            style={{
+              backgroundColor: isDark ? "#F1E7E2" : "#3E2723",
+              color: isDark ? "#3E2723" : "#FFFFFF",
+            }}
+          >
+            <span style={{ color: isDark ? "#3E2723" : "#FFFFFF" }} className="leading-none font-black">
+              {(user?.name || user?.email || "U").trim().charAt(0).toUpperCase()}
+            </span>
           </div>
           <div>
             <h1 className="text-4xl font-black text-brand-dark tracking-tight">
@@ -115,10 +125,21 @@ const Dashboard = () => {
                   <div className="flex-1">
                     <h3 className="font-black text-brand-dark">{item.name}</h3>
                     <p className="text-xs font-bold text-brand-medium">${item.price.toFixed(2)} x {item.quantity}</p>
+                    {!item.available && (
+                      <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-red-600">
+                        No disponible
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <button className="rounded-lg border border-brand-light px-3 py-1 font-black" onClick={() => removeFromCart(item.id)}>-</button>
-                    <button className="rounded-lg border border-brand-light px-3 py-1 font-black" onClick={() => addToCart(item)}>+</button>
+                    <button
+                      className="rounded-lg border border-brand-light px-3 py-1 font-black disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => addToCart(item)}
+                      disabled={!item.available}
+                    >
+                      +
+                    </button>
                     <button className="rounded-lg bg-red-600 px-3 py-1 font-black text-white" onClick={() => clearItemFromCart(item.id)}>Quitar</button>
                   </div>
                 </div>

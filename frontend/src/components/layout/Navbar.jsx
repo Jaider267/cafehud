@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
+import { Moon, ShoppingBag, Sun } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useCoffeeStore } from "../../store/useCoffeeStore";
@@ -11,6 +12,7 @@ const Navbar = () => {
   const { cart } = useCoffeeStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const navigate = useNavigate();
+  const canUseClientFeatures = !!user && ["client", "user"].includes(user.role);
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -24,6 +26,9 @@ const Navbar = () => {
       navigate("/login");
       return;
     }
+    if (!canUseClientFeatures) {
+      return;
+    }
     setIsCartOpen(true);
   };
 
@@ -33,7 +38,7 @@ const Navbar = () => {
       <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity group">
         <div className="w-12 h-12 bg-white/10 dark:bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform border border-white/10">
           <svg 
-            className="w-8 h-8 text-brand-beige dark:text-white" 
+            className="w-8 h-8 text-brand-beige dark:text-[#8B5E3C]" 
             viewBox="0 0 24 24" 
             fill="none" 
             stroke="currentColor" 
@@ -56,7 +61,7 @@ const Navbar = () => {
         <div className="flex items-center gap-6 sm:gap-10 text-[10px] font-black uppercase tracking-[0.2em]">
           {!isAuthenticated ? (
             <>
-              <Link to="/login" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Login</Link>
+              <Link to="/login" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Iniciar sesión</Link>
               <Link 
                 to="/register" 
                 className="px-6 py-3 bg-brand-medium dark:bg-white dark:text-black hover:bg-brand-medium/80 rounded-xl transition-all border border-white/10 shadow-lg"
@@ -66,11 +71,11 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/dashboard" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Dashboard</Link>
+              <Link to="/dashboard" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Panel</Link>
               {user?.role === 'admin' && (
-                <Link to="/admin" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Admin</Link>
+                <Link to="/admin" className="hover:text-brand-beige dark:hover:text-white transition-colors dark:text-gray-300">Administración</Link>
               )}
-              <span className="hidden sm:inline text-brand-beige dark:text-white">Hola, {user?.name || 'Barista'}</span>
+              <span className="hidden sm:inline text-white opacity-90">Hola, {user?.name || 'Barista'}</span>
               <button 
                 onClick={handleLogout} 
                 className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-[9px] transition-colors font-black dark:text-white"
@@ -83,34 +88,25 @@ const Navbar = () => {
           {/* Theme Toggle */}
           <button 
             onClick={toggleTheme}
-            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all active:scale-95"
-            aria-label="Toggle theme"
+            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors active:opacity-90"
+            aria-label="Cambiar tema"
           >
             {isDark ? (
-              <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
-              </svg>
+              <Sun className="w-5 h-5 text-yellow-400" strokeWidth={2.5} />
             ) : (
-              <svg className="w-4 h-4 text-brand-beige" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
+              <Moon className="w-5 h-5 text-brand-beige" strokeWidth={2.5} />
             )}
           </button>
 
           {/* Cart Toggle */}
           <button 
             onClick={handleCartOpen}
-            className="relative p-2.5 bg-brand-medium dark:bg-white/10 hover:bg-brand-dark dark:hover:bg-white/20 rounded-xl border border-white/10 transition-all active:scale-95 group shadow-lg"
+            disabled={isAuthenticated && !canUseClientFeatures}
+            className="relative p-2.5 bg-brand-medium dark:bg-white/10 hover:bg-brand-dark dark:hover:bg-white/20 rounded-xl border border-white/10 transition-colors active:opacity-90 group shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Abrir carrito"
+            title={isAuthenticated && !canUseClientFeatures ? "Disponible solo para clientes" : "Abrir carrito"}
           >
-            <svg 
-              className="w-4 h-4 text-white" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
+            <ShoppingBag className="w-5 h-5 text-white" strokeWidth={2.75} />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[8px] font-black text-white flex items-center justify-center rounded-full border border-black dark:border-white animate-bounce-slow">
                 {cartCount}
